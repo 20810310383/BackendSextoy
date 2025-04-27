@@ -76,6 +76,10 @@ const createOrder = async (req, res) => {
                         <td>${formatCurrency(product.quantity * product.price)}</td>  <!-- Tổng tiền cho sản phẩm -->
                     </tr>
                 `;
+
+                // Cập nhật SoLuongBan của sản phẩm
+                productDetails.SoLuongBan += product.quantity;  // Cộng thêm số lượng bán
+                await productDetails.save();  // Lưu lại sản phẩm đã cập nhật
             }
         }       
        
