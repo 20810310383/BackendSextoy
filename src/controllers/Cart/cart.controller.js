@@ -11,22 +11,9 @@ const addToCart = async (req, res) => {
         const product = await SanPham.findById(_idSP);
         if (!product) {
             return res.status(404).json({ message: 'Không tìm thấy sản phẩm.' });
-        }
+        }              
 
-        // Lấy size tương ứng
-        const selectedSize = product.sizes.find(s => s.size === size);
-        if (!selectedSize) {
-            return res.status(400).json({ message: 'Kích thước không hợp lệ.' });
-        }
-
-        // Check tồn kho
-        if (quantity > selectedSize.quantity) {
-            return res.status(400).json({
-                message: `Kích thước ${size} chỉ còn ${selectedSize.quantity} sản phẩm trong kho.`
-            });
-        }
-
-        const priceGoc = selectedSize.price;
+        const priceGoc = product.sizes;
 
         const giaGiam = priceGoc - (priceGoc * (product.GiamGiaSP / 100));
         const giaSauGiam = Math.floor(giaGiam / 1000) * 1000; // Làm tròn xuống 10.000₫ gần nhất
@@ -42,7 +29,6 @@ const addToCart = async (req, res) => {
                 cartId,
                 products: [{
                     _idSP,
-                    size,
                     quantity,
                     price,
                     priceGoc
@@ -52,25 +38,26 @@ const addToCart = async (req, res) => {
         } else {
             // Tìm sản phẩm đã tồn tại trong cart chưa
             const index = cart.products.findIndex(p =>
-                p._idSP.toString() === _idSP && p.size === size
+                p._idSP.toString() === _idSP 
             );
 
             if (index > -1) {
                 const currentQty = cart.products[index].quantity;
                 const totalQty = currentQty + quantity;
 
-                if (totalQty > selectedSize.quantity) {
-                    return res.status(400).json({
-                        message: `Bạn đã có ${currentQty} sản phẩm này trong giỏ. Tổng vượt kho (${selectedSize.quantity}).`
-                    });
-                }
+                // Kiểm tra xem số lượng có vượt quá kho của sản phẩm không
+                // if (totalQty > product.quantity) {
+                //     return res.status(400).json({
+                //         message: `Bạn đã có ${currentQty} sản phẩm này trong giỏ. Tổng vượt kho (${product.quantity}).`
+                //     });
+                // }
 
+                // Cập nhật số lượng trong giỏ hàng
                 cart.products[index].quantity = totalQty;
             } else {
                 // Thêm sản phẩm mới vào giỏ
                 cart.products.push({
                     _idSP,
-                    size,
                     quantity,
                     price,
                     priceGoc
@@ -122,12 +109,11 @@ const getCartByCustomerId = async (req, res) => {
 
 const updateCartItemQuantity = async (req, res) => {
     try {
-        const { cartId, _idSP, size, quantity } = req.body;
+        const { cartId, _idSP, quantity } = req.body;
         const rawCartId  = typeof cartId === 'string' ? cartId.trim() : String(cartId).trim();
 
         console.log("Đã làm sạch cartId:", rawCartId);
         console.log("_idSP:", _idSP);
-        console.log("size:", size);
         console.log("quantity:", quantity);
 
         const cart = await Cart.findOne({ cartId: { $eq: rawCartId } });
@@ -135,7 +121,7 @@ const updateCartItemQuantity = async (req, res) => {
         if (!cart) return res.status(404).json({ message: 'Không tìm thấy giỏ hàng' });
 
         const index = cart.products.findIndex(p =>
-            p._idSP.toString() === _idSP && p.size === size
+            p._idSP.toString() === _idSP
         );
 
         if (index === -1) return res.status(404).json({ message: 'Không tìm thấy sản phẩm trong giỏ hàng' });
@@ -178,14 +164,14 @@ const updateCartItemQuantity = async (req, res) => {
 
 const removeFromCart = async (req, res) => {
     try {
-        const { cartId, _idSP, size } = req.body;
+        const { cartId, _idSP } = req.body;
 
         const cart = await Cart.findOne({ cartId: cartId });
         if (!cart) return res.status(404).json({ message: "Không tìm thấy giỏ hàng." });
 
         // Xoá sản phẩm khỏi giỏ hàng
         cart.products = cart.products.filter(item =>
-            !(item._idSP.toString() === _idSP && item.size === size)
+            !(item._idSP.toString() === _idSP)
         );
 
         // ✅ Cập nhật tổng tiền giỏ hàng sau khi xoá

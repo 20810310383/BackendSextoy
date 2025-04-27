@@ -3,7 +3,6 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const xlsx = require("xlsx");
-const { deleteFileGoogle, uploadFileGoogle } = require("../../config/google");
 
 
 // Cài đặt multer để lưu trữ file
@@ -59,77 +58,9 @@ const upload = multer({
 //     });
 // };
 
-const uploadFile = (req, res) => {
-    upload.single("file")(req, res, async (err) => {
-        if (err) {
-            return res.status(400).json({ message: err });
-        }
 
-        if (!req.file) {
-            return res.status(400).json({
-                message: "No file uploaded. Vui lòng chọn file để upload.",
-            });
-        }
 
-        try {
-            const filePath = req.file.path;
-            const fileName = req.file.originalname;
 
-            const upload = await uploadFileGoogle(
-                filePath,
-                fileName,
-                req.file.mimetype
-            );
-
-            return res.json({
-                url: upload.webViewLink,
-                type: "ImageChinh",
-            });
-        } catch (error) {
-            return res.status(500).json({ message: "Lỗi khi upload file." });
-        }
-    });
-};
-
-const uploadFileMutiple = (req, res) => {
-    upload.array("file", 10)(req, res, async (err) => {
-        if (err) {
-            return res.status(400).json({ message: err });
-        }
-
-        if (!req.file) {
-            return res.status(400).json({
-                message: "No file uploaded. Vui lòng chọn file để upload.",
-            });
-        }
-
-        try {
-            const results = [];
-            for (const file of req.files) {
-                const {
-                    path: filePath,
-                    originalname: fileName,
-                    mimetype,
-                } = file;
-
-                const uploaded = await uploadFileGoogle(
-                    filePath,
-                    fileName,
-                    mimetype
-                );
-
-                results.push({
-                    url: uploaded.webViewLink,
-                    type: "ImageChinh",
-                });
-            }
-
-            return res.json({ files: results });
-        } catch (error) {
-            return res.status(500).json({ message: "Lỗi khi upload file." });
-        }
-    });
-};
 
 // Endpoint upload nhiều ảnh
 const uploadFiles = (req, res) => {
@@ -232,30 +163,10 @@ const uploadExcelFile = (req, res) => {
     });
 };
 
-// remove file drive
-const deleteFile = async (req, res) => {
-    console.log(req.body);
 
-    const { fileId } = req.body;
-
-    if (!fileId) {
-        return res.status(400).json({ message: "Missing fileId." });
-    }
-
-    try {
-        const response = await deleteFileGoogle(fileId);
-        return res.status(200).json({ message: "File deleted successfully." });
-    } catch (error) {
-        console.error("Delete error:", error);
-        return res.status(500).json({ message: "File delete error." });
-    }
-};
 
 module.exports = {
-    uploadFile,
     uploadFiles,
     uploadExcel,
     uploadExcelFile,
-    deleteFile,
-    uploadFileMutiple,
 };

@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 
 const cartItemSchema = new mongoose.Schema({
     _idSP: { type: mongoose.SchemaTypes.ObjectId, ref: 'SanPham', required: true },
-    size: { type: String, required: true },
     quantity: { type: Number, required: true },
     price: { type: Number, required: true },
     priceGoc: { type: Number, required: true },    
