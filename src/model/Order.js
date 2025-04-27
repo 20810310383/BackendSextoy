@@ -4,7 +4,6 @@ const Product = require('./SanPham');
 // Định nghĩa schema cho sản phẩm trong đơn hàng
 const productSchema = new mongoose.Schema({
     _idSP: { type: mongoose.SchemaTypes.ObjectId, ref: 'SanPham', required: true }, // Lấy thông tin sản phẩm từ _idSP
-    size: { type: String, required: true },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true }
 });

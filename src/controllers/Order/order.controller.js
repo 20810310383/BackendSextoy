@@ -71,7 +71,6 @@ const createOrder = async (req, res) => {
                 productsHtml += `
                     <tr>
                         <td>${productDetails.TenSP}</td>  
-                        <td>${product.size}</td>  
                         <td>${product.quantity}</td>  
                         <td>${formatCurrency(product.price)}</td>  <!-- Giá mỗi sản phẩm -->
                         <td>${formatCurrency(product.quantity * product.price)}</td>  <!-- Tổng tiền cho sản phẩm -->
@@ -97,7 +96,6 @@ const createOrder = async (req, res) => {
                             <thead>
                                 <tr>
                                     <th style="text-align: left; padding: 8px; background-color: #ecf0f1; color: #2c3e50;">📦 Tên sản phẩm</th>
-                                    <th style="text-align: left; padding: 8px; background-color: #ecf0f1; color: #2c3e50;">⚙️ Kích thước</th>
                                     <th style="text-align: left; padding: 8px; background-color: #ecf0f1; color: #2c3e50;">🔢 Số lượng</th>
                                     <th style="text-align: left; padding: 8px; background-color: #ecf0f1; color: #2c3e50;">💰 Đơn giá</th>
                                     <th style="text-align: left; padding: 8px; background-color: #ecf0f1; color: #2c3e50;">🧾 Tổng tiền</th>
@@ -161,7 +159,6 @@ const createOrder = async (req, res) => {
                             <thead>
                                 <tr>
                                     <th style="text-align: left; padding: 8px; background-color: #ecf0f1; color: #2c3e50;">Sản phẩm</th>
-                                    <th style="text-align: left; padding: 8px; background-color: #ecf0f1; color: #2c3e50;">Kích thước</th>
                                     <th style="text-align: left; padding: 8px; background-color: #ecf0f1; color: #2c3e50;">Số lượng</th>
                                     <th style="text-align: left; padding: 8px; background-color: #ecf0f1; color: #2c3e50;">Đơn giá</th>
                                     <th style="text-align: left; padding: 8px; background-color: #ecf0f1; color: #2c3e50;">Tổng</th>
@@ -194,39 +191,7 @@ const createOrder = async (req, res) => {
                 });
             });
         };
-        
-
-
-        
-        // Kiểm tra số lượng tồn của từng size trong sản phẩm
-        for (const item of products) {
-            // Tìm sản phẩm trong database
-            const product = await Product.findById(item._idSP);
-
-            // Kiểm tra nếu sản phẩm không tồn tại
-            if (!product) {
-                return res.status(404).json({
-                    message: `Sản phẩm với ID ${item._idSP} không tồn tại!`,
-                });
-            }
-
-            // Tìm size sản phẩm trong mảng sizes
-            const size = product.sizes.find(s => s.size === item.size);
-            
-            // Kiểm tra nếu size không tồn tại
-            if (!size) {
-                return res.status(400).json({
-                    message: `Size ${item.size} của sản phẩm không hợp lệ!`,
-                });
-            }
-
-            // Kiểm tra số lượng tồn có đủ hay không
-            if (size.quantity < item.quantity) {
-                return res.status(400).json({
-                    message: `Sản phẩm ${product.TenSP} - Kích thước: ${item.size} chỉ còn ${size.quantity} sản phẩm trong kho, bạn không thể đặt ${item.quantity} sản phẩm!`,
-                });
-            }
-        }
+       
 
         // Hàm tạo mã ngẫu nhiên
         function generateRandomCode(length = 8) {
@@ -255,52 +220,7 @@ const createOrder = async (req, res) => {
         
         // Gửi email thông báo đơn hàng mới đến Admin
         const emailAdmin = 'trannghia271002@gmail.com'
-        await sendOrderNotificationToAdmin(emailAdmin)
-
-        // Cập nhật số lượng tồn kho và số lượng bán cho từng sản phẩm
-        for (let product of products) {
-            const { _idSP, size, quantity } = product;
-
-            // Tìm sản phẩm theo _idSP
-            const productData = await Product.findById(_idSP);
-
-            if (productData) {
-                console.log(`Found product: ${productData.TenSP}`);
-
-                // Kiểm tra xem sản phẩm có kích thước (size) nào khớp với size đã đặt không
-                let updated = false;
-
-                // Duyệt qua các kích thước (sizes) của sản phẩm
-                for (let sizeData of productData.sizes) {
-                    if (sizeData.size === size) {
-                        console.log(`Updating size ${sizeData.size} with quantity ${quantity}`);
-
-                        // Giảm số lượng tồn kho của size đã đặt
-                        if (sizeData.quantity >= quantity) {
-                            sizeData.quantity -= quantity;
-                            productData.SoLuongBan += quantity;
-                            updated = true;
-                            break; // Dừng vòng lặp khi đã tìm thấy size tương ứng
-                        } else {
-                            console.log(`Not enough stock for size ${sizeData.size}`);
-                            return res.status(400).json({ message: `Không đủ số lượng cho size ${sizeData.size}` });
-                        }
-                    }
-                }
-
-                // Nếu đã cập nhật size thì tính lại tổng số lượng tồn kho của sản phẩm
-                if (updated) {
-                    // Cập nhật lại SoLuongTon (tổng số lượng tồn kho)
-                    productData.SoLuongTon = productData.sizes.reduce((total, size) => total + size.quantity, 0);
-                    console.log(`Updated stock for product: ${productData.TenSP}, new SoLuongTon: ${productData.SoLuongTon}`);
-
-                    // Lưu lại thông tin sản phẩm đã cập nhật
-                    await productData.save();
-                }
-            } else {
-                console.log(`Product not found: ${ _idSP}`);
-            }
-        }
+        await sendOrderNotificationToAdmin(emailAdmin)       
 
         await Cart.findOneAndDelete({ cartId: cartId });
 
@@ -446,35 +366,7 @@ const createOrderThanhToanVNPay = async (req, res) => {
 
 
         
-        // Kiểm tra số lượng tồn của từng size trong sản phẩm
-        for (const item of products) {
-            // Tìm sản phẩm trong database
-            const product = await Product.findById(item._idSP);
-
-            // Kiểm tra nếu sản phẩm không tồn tại
-            if (!product) {
-                return res.status(404).json({
-                    message: `Sản phẩm với ID ${item._idSP} không tồn tại!`,
-                });
-            }
-
-            // Tìm size sản phẩm trong mảng sizes
-            const size = product.sizes.find(s => s.size === item.size);
-            
-            // Kiểm tra nếu size không tồn tại
-            if (!size) {
-                return res.status(400).json({
-                    message: `Size ${item.size} của sản phẩm không hợp lệ!`,
-                });
-            }
-
-            // Kiểm tra số lượng tồn có đủ hay không
-            if (size.quantity < item.quantity) {
-                return res.status(400).json({
-                    message: `Sản phẩm ${product.TenSP} - Kích thước: ${item.size} chỉ còn ${size.quantity} sản phẩm trong kho, bạn không thể đặt ${item.quantity} sản phẩm!`,
-                });
-            }
-        }
+       
 
         // Tạo đơn hàng mới
         const newOrder = new Order({
