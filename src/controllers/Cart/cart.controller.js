@@ -13,7 +13,7 @@ const addToCart = async (req, res) => {
             return res.status(404).json({ message: 'Không tìm thấy sản phẩm.' });
         }              
 
-        const priceGoc = product.sizes;
+        const priceGoc = product.sizes ?? 0;
 
         const giaGiam = priceGoc - (priceGoc * (product.GiamGiaSP / 100));
         const giaSauGiam = Math.floor(giaGiam / 1000) * 1000; // Làm tròn xuống 10.000₫ gần nhất
