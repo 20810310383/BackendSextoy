@@ -36,6 +36,8 @@ connectDB();
 const allowedOrigins = [
     'http://localhost:3022', 
     'http://localhost:3024', 
+    'https://sextoyhn.com', 
+    'https://adminpage.sextoyhn.com', 
     
 ];
 
