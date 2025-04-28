@@ -24,7 +24,7 @@ module.exports = {
                 sortOrder = -1; 
             }
 
-            let findOrder = await Order.find({ idKhachHang: idKH })
+            let findOrder = await Order.find({ cartId: idKH })
                 .skip(skip)
                 .limit(limitNumber)
                 .populate({
@@ -35,7 +35,7 @@ module.exports = {
                 .sort({ [sort]: sortOrder })
                 
             // Tính tổng 
-            let totalOrder = await Order.countDocuments({ idKhachHang: idKH });
+            let totalOrder = await Order.countDocuments({ cartId: idKH });
             let totalPage = Math.ceil(totalOrder / limitNumber)
 
             if(findOrder){
@@ -250,7 +250,6 @@ module.exports = {
                     path: 'products._idSP', // Đường dẫn tới _idSP trong products
                     model: 'SanPham',       // Model liên kết
                 })
-                .populate('idKhachHang')
 
             for (const product of findOrder.products) {
                 // Tìm sản phẩm trong cơ sở dữ liệu bằng _idSP

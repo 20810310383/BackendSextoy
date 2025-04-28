@@ -5,7 +5,7 @@ const Voucher = require("../../model/Voucher");
 
 const addToCart = async (req, res) => {
     try {
-        const { _idSP, size, quantity, cartId } = req.body;
+        const { _idSP, quantity, cartId } = req.body;
 
         // Lấy sản phẩm
         const product = await SanPham.findById(_idSP);
@@ -77,7 +77,8 @@ const addToCart = async (req, res) => {
 
         res.status(200).json({ message: 'Đã thêm vào giỏ hàng.', data: cart });
     } catch (error) {
-        console.error('Lỗi khi thêm vào giỏ hàng:', error);
+        console.error('Lỗi khi thêm vào giỏ hàng:', error.message);
+        console.error('Chi tiết lỗi:', error);
         res.status(500).json({ message: 'Lỗi server.' });
     }
 };

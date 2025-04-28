@@ -53,7 +53,7 @@ module.exports = {
                     const successfulOrders = await Order.find({
                         TinhTrangDonHang: "Đã giao hàng",
                         TinhTrangThanhToan: "Đã Thanh Toán",
-                        idKhachHang: acc._id
+                        cartId: acc._id
                     })
 
                     // **Làm tròn tổng doanh thu**
@@ -188,7 +188,7 @@ module.exports = {
     
             // Tính tổng số đơn hàng thành công và tổng doanh thu
             const successfulOrders = await Order.find({
-                idKhachHang: id,
+                cartId: id,
                 TinhTrangDonHang: "Đã giao hàng",
                 TinhTrangThanhToan: "Đã Thanh Toán"
             });
