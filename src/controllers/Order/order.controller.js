@@ -315,11 +315,18 @@ const updateCongTienKhiNap = async (req, res) => {
                 referenceCode: sePayWebhookData.referenceCode,
             });            
 
-            // const matchContent = sePayWebhookData.content.match(/dh([a-f0-9]{24})/);
-            const matchContent = sePayWebhookData.content.match(/DH([a-zA-Z0-9]{6,30})/);
-            console.log("matchContent: ", matchContent);                
-            const idOrder = matchContent[0].replace("DH", "");
-            console.log("idOrder: ", idOrder);           
+            // const matchContent = sePayWebhookData.content.match(/DH([a-zA-Z0-9]{6,30})/);
+            let matchContent = sePayWebhookData.content.match(/(?:DH|SEVQR)([a-zA-Z0-9]{6,30})/);
+            console.log("matchContent: ", matchContent);         
+            let idOrder;       
+            // const idOrder = matchContent[0].replace("DH", "");
+            // console.log("idOrder: ", idOrder);           
+            if (matchContent && matchContent[1]) {
+                idOrder = matchContent[1];
+                console.log("idOrder: ", idOrder);
+            } else {
+                console.log("Không tìm thấy mã đơn hàng phù hợp.");
+            }
             
             // Tìm đơn hàng trong database
             const order = await Order.findOne({ 
